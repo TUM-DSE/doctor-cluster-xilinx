@@ -161,6 +161,36 @@ let
     in
     getFpga hostName host.defaultFpga;
 
+  hostFpgaEnvShellFragment =
+    let
+      hostCases = lib.concatStringsSep "\n" (
+        lib.flatten (
+          lib.mapAttrsToList (
+            hostName: host:
+            lib.mapAttrsToList (fpgaName: fpga: ''
+              ${hostName}:${fpgaName})
+                export FPGA_BDF=${lib.escapeShellArg fpga.bdf}
+                ${lib.optionalString (
+                  fpga ? partHint
+                ) "export FPGA_PART_HINT=${lib.escapeShellArg fpga.partHint}"}
+                ${lib.optionalString (
+                  fpga ? targetPlatform
+                ) "export TARGET_PLATFORM=${lib.escapeShellArg fpga.targetPlatform}"}
+                ;;
+            '') host.fpgas
+          ) hosts
+        )
+      );
+    in
+    ''
+      doctor_cluster_xilinx_host="''${DOCTOR_CLUSTER_XILINX_HOST:-$(hostname -s 2>/dev/null || hostname 2>/dev/null || true)}"
+      doctor_cluster_xilinx_fpga="''${FDEV_NAME:-}"
+      case "$doctor_cluster_xilinx_host:$doctor_cluster_xilinx_fpga" in
+      ${hostCases}
+      esac
+      unset doctor_cluster_xilinx_host doctor_cluster_xilinx_fpga
+    '';
+
   mkXilinxContext =
     {
       pkgs,
@@ -182,6 +212,7 @@ let
         getHost
         getFpga
         getDefaultFpga
+        hostFpgaEnvShellFragment
         ;
 
       xilinxShell = mkXilinxShell {
@@ -211,6 +242,7 @@ in
     getHost
     getFpga
     getDefaultFpga
+    hostFpgaEnvShellFragment
     mkXilinxContext
     ;
 }

@@ -62,6 +62,7 @@ The returned context contains:
   getHost = hostName: ...;
   getFpga = hostName: fpgaName: ...;
   getDefaultFpga = hostName: ...;
+  hostFpgaEnvShellFragment = ''...'';
 
   licenseFileFor = hostName: ...;
   licenseEnvFor = hostName: ...;
@@ -82,6 +83,7 @@ doctor-cluster-xilinx.lib.licenseEnvFor
 doctor-cluster-xilinx.lib.getHost
 doctor-cluster-xilinx.lib.getFpga
 doctor-cluster-xilinx.lib.getDefaultFpga
+doctor-cluster-xilinx.lib.hostFpgaEnvShellFragment
 ```
 
 ## Example use from a project flake
@@ -129,6 +131,8 @@ Currently encoded board-level Xilinx policy:
 - `v80.simXilinxVersion = "2025.1"`
 
 ## Host facts
+
+`hostFpgaEnvShellFragment` is a shell fragment for dev shells. At shell-entry time it detects the short hostname and current `FDEV_NAME`, then exports Doctor host-specific deployment facts such as `FPGA_BDF`, `FPGA_PART_HINT`, and `TARGET_PLATFORM` when an entry is known. Set `DOCTOR_CLUSTER_XILINX_HOST` to override hostname detection.
 
 Currently encoded FPGA entries:
 

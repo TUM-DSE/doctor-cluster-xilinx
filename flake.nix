@@ -37,6 +37,9 @@
             test "${doctorContext.boards.v80.xilinxVersion}" = "2025.1"
             test "${doctorContext.hosts.rose.fpgas.u280.bdf}" = "0000:c1:00.0"
             test "${doctorContext.hosts.rose.fpgas.u280.simXilinxVersion}" = "2022.2"
+            grep -q 'rose:v80)' <<'EOF'
+            ${doctorContext.hostFpgaEnvShellFragment}
+            EOF
           ''}
           touch $out
         '';
