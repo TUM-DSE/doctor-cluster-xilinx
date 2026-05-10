@@ -12,6 +12,7 @@ This repository provides:
 - the Doctor `xilinx-shell` package,
 - host kernels from `doctor-cluster-config` for out-of-tree driver builds,
 - FPGA inventory metadata for Doctor hosts,
+- board-level Doctor Xilinx version policy,
 - Doctor Xilinx license-file environment conventions.
 
 This repository does not provide:
@@ -54,6 +55,7 @@ The returned context contains:
   packages = { ... };
   nixosConfigurations = { ... };
 
+  boards = { ... };
   hosts = { ... };
   getHost = hostName: ...;
   getFpga = hostName: fpgaName: ...;
@@ -68,6 +70,7 @@ Lower-level helpers are also exported:
 
 ```nix
 doctor-cluster-xilinx.lib.xilinxShareRoot
+doctor-cluster-xilinx.lib.boards
 doctor-cluster-xilinx.lib.hosts
 doctor-cluster-xilinx.lib.mkXilinxShell
 doctor-cluster-xilinx.lib.mkDriverKernels
@@ -91,12 +94,31 @@ let
     inherit (doctor) xilinxShareRoot;
   };
 in
-coyote-nix.lib.mkCoyoteHwStagePackage {
+coyote-nix.lib.mkCoyoteBoardPackages {
   inherit pkgs tools coyoteRoot;
   inherit (doctor) xilinxShareRoot xilinxShell;
-  # project-specific build graph goes here
+  hwSource = ./hw;
+  pnamePrefix = "my-project";
+  projectName = "my-project";
+  boards = {
+    u280 = {
+      inherit (doctor.boards.u280) xilinxVersion simXilinxVersion;
+    };
+    v80 = {
+      inherit (doctor.boards.v80) xilinxVersion simXilinxVersion;
+    };
+  };
 }
 ```
+
+## Board policy
+
+Currently encoded board-level Xilinx policy:
+
+- `u280.xilinxVersion = "2023.2"`
+- `u280.simXilinxVersion = "2022.2"`
+- `v80.xilinxVersion = "2025.1"`
+- `v80.simXilinxVersion = "2025.1"`
 
 ## Host facts
 

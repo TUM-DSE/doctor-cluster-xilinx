@@ -7,6 +7,28 @@ let
 
   normalizeMac = mac: lib.toUpper (builtins.replaceStrings [ ":" ] [ "" ] mac);
 
+  boards = {
+    u280 = {
+      board = "u280";
+      family = "ultrascale";
+      coyotePlatform = "ultrascale";
+      targetPlatform = "ultrascale_plus";
+      partHint = "xcu280";
+      xilinxVersion = "2023.2";
+      simXilinxVersion = "2022.2";
+    };
+
+    v80 = {
+      board = "v80";
+      family = "versal";
+      coyotePlatform = "versal";
+      targetPlatform = "versal";
+      partHint = "xcv80";
+      xilinxVersion = "2025.1";
+      simXilinxVersion = "2025.1";
+    };
+  };
+
   mkU280 =
     {
       bdf,
@@ -14,14 +36,9 @@ let
       ipAddr,
       ipAddrHex,
     }:
-    {
-      board = "u280";
-      family = "ultrascale";
-      coyotePlatform = "ultrascale";
-      targetPlatform = "ultrascale_plus";
+    boards.u280
+    // {
       inherit bdf;
-      partHint = "xcu280";
-      xilinxVersion = "2023.2";
       coyoteNetwork = {
         inherit ipAddr ipAddrHex mac;
         macAddr = normalizeMac mac;
@@ -31,14 +48,9 @@ let
 
   mkV80 =
     { bdf }:
-    {
-      board = "v80";
-      family = "versal";
-      coyotePlatform = "versal";
-      targetPlatform = "versal";
+    boards.v80
+    // {
       inherit bdf;
-      partHint = "xcv80";
-      xilinxVersion = "2025.1";
     };
 
   hosts = {
@@ -157,6 +169,7 @@ let
     {
       inherit
         xilinxShareRoot
+        boards
         hosts
         licenseFileFor
         licenseEnvFor
@@ -182,6 +195,7 @@ in
 {
   inherit
     xilinxShareRoot
+    boards
     hosts
     mkXilinxShell
     mkDriverKernels
