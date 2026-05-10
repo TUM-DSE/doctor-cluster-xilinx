@@ -7,6 +7,11 @@ let
 
   normalizeMac = mac: lib.toUpper (builtins.replaceStrings [ ":" ] [ "" ] mac);
 
+  targetPlatforms = [
+    "ultrascale_plus"
+    "versal"
+  ];
+
   boards = {
     u280 = {
       board = "u280";
@@ -169,6 +174,7 @@ let
     {
       inherit
         xilinxShareRoot
+        targetPlatforms
         boards
         hosts
         licenseFileFor
@@ -195,6 +201,7 @@ in
 {
   inherit
     xilinxShareRoot
+    targetPlatforms
     boards
     hosts
     mkXilinxShell

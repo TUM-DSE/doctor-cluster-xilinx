@@ -31,6 +31,7 @@
         checks.eval-context = pkgs.runCommand "doctor-cluster-xilinx-eval-context" { } ''
           ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isx86_64 ''
             test "${doctorContext.xilinxShareRoot}" = "/share/xilinx"
+            test "${builtins.concatStringsSep " " doctorContext.targetPlatforms}" = "ultrascale_plus versal"
             test "${doctorContext.boards.u280.xilinxVersion}" = "2023.2"
             test "${doctorContext.boards.u280.simXilinxVersion}" = "2022.2"
             test "${doctorContext.boards.v80.xilinxVersion}" = "2025.1"

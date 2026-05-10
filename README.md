@@ -13,6 +13,7 @@ This repository provides:
 - host kernels from `doctor-cluster-config` for out-of-tree driver builds,
 - FPGA inventory metadata for Doctor hosts,
 - board-level Doctor Xilinx version policy,
+- Doctor-supported Coyote target platforms,
 - Doctor Xilinx license-file environment conventions.
 
 This repository does not provide:
@@ -51,6 +52,7 @@ The returned context contains:
 {
   xilinxShareRoot = "/share/xilinx";
   xilinxShell = ...;
+  targetPlatforms = [ "ultrascale_plus" "versal" ];
   driverKernels = { ... };
   packages = { ... };
   nixosConfigurations = { ... };
@@ -70,6 +72,7 @@ Lower-level helpers are also exported:
 
 ```nix
 doctor-cluster-xilinx.lib.xilinxShareRoot
+doctor-cluster-xilinx.lib.targetPlatforms
 doctor-cluster-xilinx.lib.boards
 doctor-cluster-xilinx.lib.hosts
 doctor-cluster-xilinx.lib.mkXilinxShell
@@ -111,7 +114,12 @@ coyote-nix.lib.mkCoyoteBoardPackages {
 }
 ```
 
-## Board policy
+## Board and target-platform policy
+
+Currently encoded Coyote target platforms:
+
+- `ultrascale_plus`
+- `versal`
 
 Currently encoded board-level Xilinx policy:
 
