@@ -1,0 +1,108 @@
+# doctor-cluster-xilinx
+
+Doctor-cluster Xilinx environment metadata for FPGA development workflows.
+
+This flake describes site-specific infrastructure needed by Xilinx FPGA projects on the Doctor cluster. It is a configuration/data layer: it does not build project artifacts and does not provide generic Coyote tooling.
+
+## Scope
+
+This repository provides:
+
+- the Doctor Xilinx installation root,
+- the Doctor `xilinx-shell` package,
+- host kernels from `doctor-cluster-config` for out-of-tree driver builds,
+- FPGA inventory metadata for Doctor hosts,
+- Doctor Xilinx license-file environment conventions.
+
+This repository does not provide:
+
+- Coyote build functions,
+- Vivado/Vitis wrapper implementations,
+- project-specific hardware or software packages,
+- project-specific bitstream names,
+- project-specific synthesis/routing/bitgen graphs.
+
+Those concerns belong in the consuming project and/or in a generic tooling flake.
+
+## Intended composition model
+
+A project flake is expected to compose three kinds of inputs:
+
+1. generic tooling, such as `coyote-nix`,
+2. site metadata, such as this flake,
+3. project-specific source layout and build graph.
+
+This keeps site policy separate from both generic tooling and project-specific builds. Another deployment site can provide a flake with the same shape and be substituted by the project flake.
+
+## Flake interface
+
+Main entry point:
+
+```nix
+doctor-cluster-xilinx.lib.mkXilinxContext {
+  inherit pkgs system;
+}
+```
+
+The returned context contains:
+
+```nix
+{
+  xilinxShareRoot = "/share/xilinx";
+  xilinxShell = ...;
+  driverKernels = { ... };
+  packages = { ... };
+  nixosConfigurations = { ... };
+
+  hosts = { ... };
+  getHost = hostName: ...;
+  getFpga = hostName: fpgaName: ...;
+  getDefaultFpga = hostName: ...;
+
+  licenseFileFor = hostName: ...;
+  licenseEnvFor = hostName: ...;
+}
+```
+
+Lower-level helpers are also exported:
+
+```nix
+doctor-cluster-xilinx.lib.xilinxShareRoot
+doctor-cluster-xilinx.lib.hosts
+doctor-cluster-xilinx.lib.mkXilinxShell
+doctor-cluster-xilinx.lib.mkDriverKernels
+doctor-cluster-xilinx.lib.licenseFileFor
+doctor-cluster-xilinx.lib.licenseEnvFor
+doctor-cluster-xilinx.lib.getHost
+doctor-cluster-xilinx.lib.getFpga
+doctor-cluster-xilinx.lib.getDefaultFpga
+```
+
+## Example use from a project flake
+
+```nix
+let
+  doctor = doctor-cluster-xilinx.lib.mkXilinxContext {
+    inherit pkgs system;
+  };
+
+  tools = coyote-nix.lib.mkTools {
+    inherit pkgs coyoteRoot;
+    inherit (doctor) xilinxShareRoot;
+  };
+in
+coyote-nix.lib.mkCoyoteHwStagePackage {
+  inherit pkgs tools coyoteRoot;
+  inherit (doctor) xilinxShareRoot xilinxShell;
+  # project-specific build graph goes here
+}
+```
+
+## Host facts
+
+Currently encoded FPGA entries:
+
+- `amy.u280`
+- `clara.u280`
+- `rose.u280`
+- `rose.v80`
