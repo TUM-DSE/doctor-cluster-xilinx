@@ -40,6 +40,8 @@ let
       mac,
       ipAddr,
       ipAddrHex,
+      jtagTarget ? null,
+      hwServerPort ? null,
     }:
     boards.u280
     // {
@@ -49,14 +51,22 @@ let
         macAddr = normalizeMac mac;
         driverArgs = "ip_addr=${ipAddrHex} mac_addr=${normalizeMac mac}";
       };
-    };
+    }
+    // lib.optionalAttrs (jtagTarget != null) { inherit jtagTarget; }
+    // lib.optionalAttrs (hwServerPort != null) { inherit hwServerPort; };
 
   mkV80 =
-    { bdf }:
+    {
+      bdf,
+      jtagTarget ? null,
+      hwServerPort ? null,
+    }:
     boards.v80
     // {
       inherit bdf;
-    };
+    }
+    // lib.optionalAttrs (jtagTarget != null) { inherit jtagTarget; }
+    // lib.optionalAttrs (hwServerPort != null) { inherit hwServerPort; };
 
   hosts = {
     amy = {
@@ -87,9 +97,13 @@ let
           ipAddr = "10.0.0.3";
           ipAddrHex = "0x0A000003";
           mac = "00:0A:35:0E:24:E6";
+          jtagTarget = "217702174005A";
+          hwServerPort = "3121";
         };
         v80 = mkV80 {
           bdf = "0000:61:00.0";
+          jtagTarget = "XFL1EZVSAG4SA";
+          hwServerPort = "3122";
         };
       };
     };
@@ -176,6 +190,12 @@ let
                 ${lib.optionalString (
                   fpga ? targetPlatform
                 ) "export TARGET_PLATFORM=${lib.escapeShellArg fpga.targetPlatform}"}
+                ${lib.optionalString (
+                  fpga ? jtagTarget
+                ) "export FPGA_JTAG_TARGET=${lib.escapeShellArg fpga.jtagTarget}"}
+                ${lib.optionalString (
+                  fpga ? hwServerPort
+                ) "export COYOTE_NIX_HW_SERVER_PORT=${lib.escapeShellArg fpga.hwServerPort}"}
                 ;;
             '') host.fpgas
           ) hosts
