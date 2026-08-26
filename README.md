@@ -139,4 +139,4 @@ Currently encoded FPGA entries:
 - `amy.u280`
 - `clara.u280`
 - `rose.u280` (`0000:c1:00.0`, JTAG target `217702174005A`, hw_server port `3121`)
-- `rose.v80` (`0000:61:00.0`, JTAG target `XFL1EZVSAG4SA`, hw_server port `3122`)
+- `rose.v80` (`0000:61:00.0`, JTAG target `XFL1EZVSAG4SA`, hw_server port `3122`, ChipScoPy cs_server port `3042`)

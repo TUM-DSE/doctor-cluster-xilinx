@@ -60,13 +60,15 @@ let
       bdf,
       jtagTarget ? null,
       hwServerPort ? null,
+      csServerPort ? null,
     }:
     boards.v80
     // {
       inherit bdf;
     }
     // lib.optionalAttrs (jtagTarget != null) { inherit jtagTarget; }
-    // lib.optionalAttrs (hwServerPort != null) { inherit hwServerPort; };
+    // lib.optionalAttrs (hwServerPort != null) { inherit hwServerPort; }
+    // lib.optionalAttrs (csServerPort != null) { inherit csServerPort; };
 
   hosts = {
     amy = {
@@ -104,6 +106,7 @@ let
           bdf = "0000:61:00.0";
           jtagTarget = "XFL1EZVSAG4SA";
           hwServerPort = "3122";
+          csServerPort = "3042";
         };
       };
     };
@@ -196,6 +199,9 @@ let
                 ${lib.optionalString (
                   fpga ? hwServerPort
                 ) "export COYOTE_NIX_HW_SERVER_PORT=${lib.escapeShellArg fpga.hwServerPort}"}
+                ${lib.optionalString (
+                  fpga ? csServerPort
+                ) "export COYOTE_NIX_CS_SERVER_PORT=${lib.escapeShellArg fpga.csServerPort}"}
                 ;;
             '') host.fpgas
           ) hosts
