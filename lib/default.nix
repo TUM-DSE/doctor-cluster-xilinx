@@ -121,12 +121,13 @@ let
     }:
     let
       doctorPackages = doctor-cluster-config.packages.${system} or { };
+      doctorPkgs = doctor-cluster-config.inputs.nixpkgs.legacyPackages.${system};
       buildXilinxFHSEnv =
         args:
         let
           upstreamTargetPkgs = args.targetPkgs or (_: [ ]);
         in
-        pkgs.buildFHSEnv (
+        doctorPkgs.buildFHSEnv (
           args
           // {
             targetPkgs = fhsPkgs: upstreamTargetPkgs fhsPkgs ++ [ fhsPkgs.util-linux ];
