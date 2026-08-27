@@ -121,6 +121,17 @@ let
     }:
     let
       doctorPackages = doctor-cluster-config.packages.${system} or { };
+      buildXilinxFHSEnv =
+        args:
+        let
+          upstreamTargetPkgs = args.targetPkgs or (_: [ ]);
+        in
+        pkgs.buildFHSEnv (
+          args
+          // {
+            targetPkgs = fhsPkgs: upstreamTargetPkgs fhsPkgs ++ [ fhsPkgs.util-linux ];
+          }
+        );
     in
     if !(pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux) then
       throw "doctor-cluster-xilinx: Xilinx shell is only available on x86_64-linux"
@@ -129,6 +140,7 @@ let
     else
       doctorPackages.xilinx-env.override {
         inherit xilinxName runScript;
+        buildFHSEnv = buildXilinxFHSEnv;
       };
 
   mkDriverKernels =

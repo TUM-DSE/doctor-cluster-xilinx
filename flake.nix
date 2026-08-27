@@ -28,28 +28,39 @@
         doctorContext = doctorXilinxLib.mkXilinxContext { inherit pkgs system; };
       in
       {
-        checks.eval-context = pkgs.runCommand "doctor-cluster-xilinx-eval-context" { } ''
-          ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isx86_64 ''
-            test "${doctorContext.xilinxShareRoot}" = "/share/xilinx"
-            test "${builtins.concatStringsSep " " doctorContext.targetPlatforms}" = "ultrascale_plus versal"
-            test "${doctorContext.boards.u280.xilinxVersion}" = "2023.2"
-            test "${doctorContext.boards.u280.simXilinxVersion}" = "2022.2"
-            test "${doctorContext.boards.v80.xilinxVersion}" = "2025.1"
-            test "${doctorContext.hosts.rose.fpgas.u280.bdf}" = "0000:c1:00.0"
-            test "${doctorContext.hosts.rose.fpgas.u280.jtagTarget}" = "217702174005A"
-            test "${doctorContext.hosts.rose.fpgas.u280.hwServerPort}" = "3121"
-            test "${doctorContext.hosts.rose.fpgas.u280.simXilinxVersion}" = "2022.2"
-            test "${doctorContext.hosts.rose.fpgas.v80.jtagTarget}" = "XFL1EZVSAG4SA"
-            test "${doctorContext.hosts.rose.fpgas.v80.hwServerPort}" = "3122"
-            grep -q 'rose:v80)' <<'EOF'
-            ${doctorContext.hostFpgaEnvShellFragment}
-            EOF
-            grep -q 'FPGA_JTAG_TARGET' <<'EOF'
-            ${doctorContext.hostFpgaEnvShellFragment}
-            EOF
-          ''}
-          touch $out
-        '';
+        checks = {
+          eval-context = pkgs.runCommand "doctor-cluster-xilinx-eval-context" { } ''
+            ${pkgs.lib.optionalString pkgs.stdenv.hostPlatform.isx86_64 ''
+              test "${doctorContext.xilinxShareRoot}" = "/share/xilinx"
+              test "${builtins.concatStringsSep " " doctorContext.targetPlatforms}" = "ultrascale_plus versal"
+              test "${doctorContext.boards.u280.xilinxVersion}" = "2023.2"
+              test "${doctorContext.boards.u280.simXilinxVersion}" = "2022.2"
+              test "${doctorContext.boards.v80.xilinxVersion}" = "2025.1"
+              test "${doctorContext.hosts.rose.fpgas.u280.bdf}" = "0000:c1:00.0"
+              test "${doctorContext.hosts.rose.fpgas.u280.jtagTarget}" = "217702174005A"
+              test "${doctorContext.hosts.rose.fpgas.u280.hwServerPort}" = "3121"
+              test "${doctorContext.hosts.rose.fpgas.u280.simXilinxVersion}" = "2022.2"
+              test "${doctorContext.hosts.rose.fpgas.v80.jtagTarget}" = "XFL1EZVSAG4SA"
+              test "${doctorContext.hosts.rose.fpgas.v80.hwServerPort}" = "3122"
+              grep -q 'rose:v80)' <<'EOF'
+              ${doctorContext.hostFpgaEnvShellFragment}
+              EOF
+              grep -q 'FPGA_JTAG_TARGET' <<'EOF'
+              ${doctorContext.hostFpgaEnvShellFragment}
+              EOF
+            ''}
+            touch $out
+          '';
+
+          xilinx-shell-lscpu = pkgs.runCommand "doctor-cluster-xilinx-shell-lscpu" { } ''
+            ${doctorContext.xilinxShell}/bin/xilinx-shell -c '
+              test -x /usr/bin/lscpu
+              test "$(command -v lscpu)" = /usr/bin/lscpu
+              /usr/bin/lscpu --help >/dev/null
+            '
+            touch $out
+          '';
+        };
 
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [

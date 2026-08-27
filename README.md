@@ -9,7 +9,7 @@ This flake describes site-specific infrastructure needed by Xilinx FPGA projects
 This repository provides:
 
 - the Doctor Xilinx installation root,
-- the Doctor `xilinx-shell` package,
+- the Doctor `xilinx-shell` package, including `lscpu` inside its nested FHS `/usr`,
 - host kernels from `doctor-cluster-config` for out-of-tree driver builds,
 - FPGA inventory metadata for Doctor hosts,
 - board-level Doctor Xilinx version policy,
@@ -35,6 +35,8 @@ A project flake is expected to compose three kinds of inputs:
 3. project-specific source layout and build graph.
 
 This keeps site policy separate from both generic tooling and project-specific builds. Another deployment site can provide a flake with the same shape and be substituted by the project flake.
+
+The exported Xilinx shell extends the cluster's upstream FHS composition with `util-linux`. This is intentionally done inside the FHS root so Xilinx subprocesses can resolve `/usr/bin/lscpu`; an outer sandbox bind is insufficient because the nested shell replaces `/usr`.
 
 ## Flake interface
 
