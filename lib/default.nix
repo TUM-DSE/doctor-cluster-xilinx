@@ -122,6 +122,23 @@ let
     let
       doctorPackages = doctor-cluster-config.packages.${system} or { };
       doctorPkgs = doctor-cluster-config.inputs.nixpkgs.legacyPackages.${system};
+      sandboxLscpu = doctorPkgs.writeShellScriptBin "lscpu" ''
+        if [ -r /sys/devices/system/cpu/possible ]; then
+          exec ${doctorPkgs.util-linux}/bin/lscpu "$@"
+        fi
+
+        if [ "$#" -ne 0 ]; then
+          exec ${doctorPkgs.util-linux}/bin/lscpu "$@"
+        fi
+
+        cpu_count="$(${doctorPkgs.coreutils}/bin/nproc 2>/dev/null || printf '1')"
+        if [ "$cpu_count" -lt 1 ]; then
+          cpu_count=1
+        fi
+        printf 'Architecture:                    x86_64\n'
+        printf 'CPU(s):                          %s\n' "$cpu_count"
+        printf 'On-line CPU(s) list:             0-%s\n' "$((cpu_count - 1))"
+      '';
       buildXilinxFHSEnv =
         args:
         let
@@ -130,7 +147,13 @@ let
         doctorPkgs.buildFHSEnv (
           args
           // {
-            targetPkgs = fhsPkgs: upstreamTargetPkgs fhsPkgs ++ [ fhsPkgs.util-linux ];
+            targetPkgs =
+              fhsPkgs:
+              upstreamTargetPkgs fhsPkgs
+              ++ [
+                fhsPkgs.util-linux
+                (doctorPkgs.lib.hiPrio sandboxLscpu)
+              ];
           }
         );
     in

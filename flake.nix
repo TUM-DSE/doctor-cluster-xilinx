@@ -56,6 +56,9 @@
             ${doctorContext.xilinxShell}/bin/xilinx-shell -c '
               test -x /usr/bin/lscpu
               test "$(command -v lscpu)" = /usr/bin/lscpu
+              /usr/bin/lscpu > /tmp/lscpu.txt
+              grep -q "^Architecture:" /tmp/lscpu.txt
+              grep -q "^CPU(s):" /tmp/lscpu.txt
               /usr/bin/lscpu --help >/dev/null
             '
             touch $out

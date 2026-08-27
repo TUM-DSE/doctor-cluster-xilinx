@@ -36,7 +36,7 @@ A project flake is expected to compose three kinds of inputs:
 
 This keeps site policy separate from both generic tooling and project-specific builds. Another deployment site can provide a flake with the same shape and be substituted by the project flake.
 
-The exported Xilinx shell extends the cluster's upstream FHS composition with `util-linux`. This is intentionally done inside the FHS root so Xilinx subprocesses can resolve `/usr/bin/lscpu`; an outer sandbox bind is insufficient because the nested shell replaces `/usr`.
+The exported Xilinx shell extends the cluster's upstream FHS composition with `util-linux`. This is intentionally done inside the FHS root so Xilinx subprocesses can resolve `/usr/bin/lscpu`; an outer sandbox bind is insufficient because the nested shell replaces `/usr`. The wrapper delegates to the real utility when Linux sysfs is available and emits the basic architecture and CPU-count fields from the sandbox-visible process environment when a hermetic Nix build has no `/sys` mount.
 
 ## Flake interface
 
