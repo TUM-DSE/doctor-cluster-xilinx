@@ -136,9 +136,31 @@ Currently encoded board-level Xilinx policy:
 
 `hostFpgaEnvShellFragment` is a shell fragment for dev shells. At shell-entry time it detects the short hostname and current `FDEV_NAME`, then exports Doctor host-specific deployment facts such as `FPGA_BDF`, `FPGA_PART_HINT`, `TARGET_PLATFORM`, `FPGA_JTAG_TARGET`, and `COYOTE_NIX_HW_SERVER_PORT` when an entry is known. Set `DOCTOR_CLUSTER_XILINX_HOST` to override hostname detection.
 
-Currently encoded FPGA entries:
+FPGA locations are explicitly maintained in `lib/default.nix`; they are not
+imported from `doctor-cluster-config`. Updating that flake input alone does not
+refresh the inventory.
 
-- `amy.u280`
-- `clara.u280`
-- `rose.u280` (`0000:c1:00.0`, JTAG target `217702174005A`, hw_server port `3121`)
-- `rose.v80` (`0000:61:00.0`, JTAG target `XFL1EZVSAG4SA`, hw_server port `3122`, ChipScoPy cs_server port `3042`)
+The post-shuffle inventory was checked read-only over SSH using PCI and USB sysfs
+on Amy, Clara, and Rose:
+
+| Entry | PCI BDF | Observed USB serial |
+| --- | --- | --- |
+| `amy.u280` | `0000:e1:00.0` | `21770327N005` |
+| `amy.v80` | `0000:81:00.0` | `XFL1A3A2MN3U` |
+| `clara.u280` | `0000:e1:00.0` | `21770327N021` |
+| `rose.u280` | `0000:e1:00.0` | `217702174005` |
+| `rose.v80` | `0000:c1:00.0` | `XFL1EZVSAG4S` |
+
+There was no V80 PCI/USB device on Clara. The inventory documentation in
+`doctor-cluster-config` at `3e0cfb73` still places serial `XFL1A3A2MN3U` on Clara;
+the live observations above supersede that location.
+
+Rose retains its existing JTAG targets and configured server ports:
+- U280: target `217702174005A`, hw_server port `3121`.
+- V80: target `XFL1EZVSAG4SA`, hw_server port `3122`, cs_server port `3042`.
+
+Amy's V80 JTAG target and server ports are deliberately unspecified pending
+verification/configuration. A USB serial is not itself a verified Vivado JTAG
+target. No hardware servers were running during inventory, and no JTAG sessions,
+programming, resets, or driver changes were performed. Existing network settings
+were retained, not revalidated. Recheck board identity and ownership before use.

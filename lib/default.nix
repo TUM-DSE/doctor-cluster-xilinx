@@ -79,6 +79,9 @@ let
         ipAddrHex = "0x0A000001";
         mac = "00:0A:35:0E:24:D6";
       };
+      fpgas.v80 = mkV80 {
+        bdf = "0000:81:00.0";
+      };
     };
 
     clara = {
@@ -95,7 +98,7 @@ let
       defaultFpga = "u280";
       fpgas = {
         u280 = mkU280 {
-          bdf = "0000:c1:00.0";
+          bdf = "0000:e1:00.0";
           ipAddr = "10.0.0.3";
           ipAddrHex = "0x0A000003";
           mac = "00:0A:35:0E:24:E6";
@@ -103,7 +106,7 @@ let
           hwServerPort = "3121";
         };
         v80 = mkV80 {
-          bdf = "0000:61:00.0";
+          bdf = "0000:c1:00.0";
           jtagTarget = "XFL1EZVSAG4SA";
           hwServerPort = "3122";
           csServerPort = "3042";

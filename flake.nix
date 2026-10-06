@@ -36,7 +36,19 @@
               test "${doctorContext.boards.u280.xilinxVersion}" = "2023.2"
               test "${doctorContext.boards.u280.simXilinxVersion}" = "2022.2"
               test "${doctorContext.boards.v80.xilinxVersion}" = "2025.1"
-              test "${doctorContext.hosts.rose.fpgas.u280.bdf}" = "0000:c1:00.0"
+              test "${doctorContext.hosts.rose.fpgas.u280.bdf}" = "0000:e1:00.0"
+              test "${doctorContext.hosts.rose.fpgas.v80.bdf}" = "0000:c1:00.0"
+              test "${doctorContext.hosts.amy.fpgas.v80.bdf}" = "0000:81:00.0"
+              test "${builtins.toString (doctorContext.hosts.clara.fpgas ? v80)}" = ""
+              (
+                export DOCTOR_CLUSTER_XILINX_HOST=amy FDEV_NAME=v80
+                unset FPGA_BDF FPGA_PART_HINT TARGET_PLATFORM FPGA_JTAG_TARGET
+                ${doctorContext.hostFpgaEnvShellFragment}
+                test "$FPGA_BDF" = "0000:81:00.0"
+                test "$FPGA_PART_HINT" = "xcv80"
+                test "$TARGET_PLATFORM" = "versal"
+                test -z "''${FPGA_JTAG_TARGET:-}"
+              )
               test "${doctorContext.hosts.rose.fpgas.u280.jtagTarget}" = "217702174005A"
               test "${doctorContext.hosts.rose.fpgas.u280.hwServerPort}" = "3121"
               test "${doctorContext.hosts.rose.fpgas.u280.simXilinxVersion}" = "2022.2"
