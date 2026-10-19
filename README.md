@@ -134,7 +134,34 @@ Currently encoded board-level Xilinx policy:
 
 ## Host facts
 
-`hostFpgaEnvShellFragment` is a shell fragment for dev shells. At shell-entry time it detects the short hostname and current `FDEV_NAME`, then exports Doctor host-specific deployment facts such as `FPGA_BDF`, `FPGA_PART_HINT`, `TARGET_PLATFORM`, `FPGA_JTAG_TARGET`, and `COYOTE_NIX_HW_SERVER_PORT` when an entry is known. Set `DOCTOR_CLUSTER_XILINX_HOST` to override hostname detection.
+`hostFpgaEnvShellFragment` is a shell fragment for dev shells. At shell-entry time it detects the short hostname and current `FDEV_NAME`, clears inherited inventory-derived hardware facts, and then exports the matching Doctor host facts such as `FPGA_BDF`, `FPGA_PART_HINT`, `TARGET_PLATFORM`, `FPGA_JTAG_TARGET`, and `COYOTE_NIX_HW_SERVER_PORT`. It deliberately preserves `FDEV_NAME` for build target selection. Set `DOCTOR_CLUSTER_XILINX_HOST` to override hostname detection.
+
+### Generic Xilinx build and simulation environment
+
+The `xilinx` dev shell exposes the Doctor `xilinx-shell` package and the
+`XILINX_SHARE_ROOT` path without selecting any board or importing hardware
+inventory. On an x86_64 Linux host with `/share/xilinx` mounted (for example,
+Clara), use the installed Vivado tools directly:
+
+```sh
+nix develop .#xilinx
+xilinx-shell -c 'vivado -version'
+
+mkdir -p /tmp/xilinx-smoke && cd /tmp/xilinx-smoke
+cat > tb.v <<'EOF'
+module tb;
+  initial begin
+    $display("generic XSim smoke test passed");
+    $finish;
+  end
+endmodule
+EOF
+xilinx-shell -c 'cd /tmp/xilinx-smoke && xvlog tb.v && xelab -top tb -snapshot tb_snapshot && xsim tb_snapshot -runall'
+```
+
+This uses the shared Xilinx installation for generic RTL simulation; it does
+not build a project image or program an FPGA. Project-specific Coyote build
+functions and build graphs remain the responsibility of the consuming project.
 
 FPGA locations are explicitly maintained in `lib/default.nix`; they are not
 imported from `doctor-cluster-config`. Updating that flake input alone does not

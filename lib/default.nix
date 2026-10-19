@@ -248,6 +248,11 @@ let
       );
     in
     ''
+      # Shells may be nested or inherited from a prior project/board devshell.
+      # Clear inventory-derived hardware facts before applying this host's match;
+      # keep FDEV_NAME intact because generic Coyote builds use it for target selection.
+      unset FPGA_BDF FPGA_PART_HINT TARGET_PLATFORM COYOTE_NIX_TARGET_PLATFORM COYOTE_NIX_PLATFORM
+      unset FPGA_JTAG_TARGET COYOTE_NIX_HW_SERVER_PORT COYOTE_NIX_CS_SERVER_PORT HW_SERVER_PORT
       doctor_cluster_xilinx_host="''${DOCTOR_CLUSTER_XILINX_HOST:-$(hostname -s 2>/dev/null || hostname 2>/dev/null || true)}"
       doctor_cluster_xilinx_fpga="''${FDEV_NAME:-}"
       case "$doctor_cluster_xilinx_host:$doctor_cluster_xilinx_fpga" in
