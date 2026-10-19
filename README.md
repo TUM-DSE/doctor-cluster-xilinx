@@ -138,30 +138,15 @@ Currently encoded board-level Xilinx policy:
 
 ### Generic Xilinx build and simulation environment
 
-The `xilinx` dev shell exposes the Doctor `xilinx-shell` package and the
-`XILINX_SHARE_ROOT` path without selecting any board or importing hardware
-inventory. On an x86_64 Linux host with `/share/xilinx` mounted (for example,
-Clara), use the installed Vivado tools directly:
+The existing `mkXilinxContext` API exposes `xilinxShell` and `xilinxShareRoot`
+independently of FPGA inventory. Consuming projects can use these in their
+existing build and simulation environments on any compatible x86_64 Linux host
+with `/share/xilinx` mounted. No additional dev shell is required.
 
-```sh
-nix develop .#xilinx
-xilinx-shell -c 'vivado -version'
-
-mkdir -p /tmp/xilinx-smoke && cd /tmp/xilinx-smoke
-cat > tb.v <<'EOF'
-module tb;
-  initial begin
-    $display("generic XSim smoke test passed");
-    $finish;
-  end
-endmodule
-EOF
-xilinx-shell -c 'cd /tmp/xilinx-smoke && xvlog tb.v && xelab -top tb -snapshot tb_snapshot && xsim tb_snapshot -runall'
-```
-
-This uses the shared Xilinx installation for generic RTL simulation; it does
-not build a project image or program an FPGA. Project-specific Coyote build
-functions and build graphs remain the responsibility of the consuming project.
+Build-target selection remains independent of local hardware. On hosts without
+a matching FPGA, `hostFpgaEnvShellFragment` clears deployment selectors while
+preserving `FDEV_NAME`. Project-specific build graphs remain the responsibility
+of the consuming project.
 
 FPGA locations are explicitly maintained in `lib/default.nix`; they are not
 imported from `doctor-cluster-config`. Updating that flake input alone does not

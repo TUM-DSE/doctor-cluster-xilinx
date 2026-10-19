@@ -137,12 +137,6 @@
           ];
         };
 
-        # Generic Xilinx tools only: no project build graph or hardware target is selected.
-        devShells.xilinx = pkgs.mkShell {
-          packages = [ doctorContext.xilinxShell ];
-          XILINX_SHARE_ROOT = doctorContext.xilinxShareRoot;
-        };
-
         formatter = pkgs.nixfmt-rfc-style;
       }
     )
