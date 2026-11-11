@@ -36,17 +36,24 @@
               test "${doctorContext.boards.u280.xilinxVersion}" = "2023.2"
               test "${doctorContext.boards.u280.simXilinxVersion}" = "2022.2"
               test "${doctorContext.boards.v80.xilinxVersion}" = "2025.1"
+              test "${doctorContext.boards.u280.vendor}" = xilinx
+              test "${doctorContext.boards.v80.vendor}" = xilinx
+              test "${doctorContext.boards.agilex7.vendor}" = intel
+              test "${doctorContext.boards.agilex7.quartusVersion}" = "24.1"
+              test "${doctorContext.quartusShareRoot}" = "/share/intel-fpga/tools"
               test "${doctorContext.hosts.rose.fpgas.u280.bdf}" = "0000:e1:00.0"
               test "${doctorContext.hosts.rose.fpgas.v80.bdf}" = "0000:c1:00.0"
               test "${doctorContext.hosts.amy.fpgas.v80.bdf}" = "0000:81:00.0"
               test "${builtins.toString (doctorContext.hosts.clara.fpgas ? v80)}" = ""
               stale_hardware_facts() {
+                export FPGA_VENDOR=stale-vendor
                 export FPGA_BDF=stale-bdf FPGA_PART_HINT=stale-part TARGET_PLATFORM=stale-target
                 export COYOTE_NIX_TARGET_PLATFORM=stale-coyote-target COYOTE_NIX_PLATFORM=stale-platform
                 export FPGA_JTAG_TARGET=stale-jtag
                 export COYOTE_NIX_HW_SERVER_PORT=9991 COYOTE_NIX_CS_SERVER_PORT=9992 HW_SERVER_PORT=9993
               }
               assert_hardware_facts_cleared() {
+                test -z "''${FPGA_VENDOR:-}"
                 test -z "''${FPGA_BDF:-}" && test -z "''${FPGA_PART_HINT:-}"
                 test -z "''${TARGET_PLATFORM:-}" && test -z "''${COYOTE_NIX_TARGET_PLATFORM:-}"
                 test -z "''${COYOTE_NIX_PLATFORM:-}"
@@ -58,6 +65,7 @@
                 stale_hardware_facts
                 ${doctorContext.hostFpgaEnvShellFragment}
                 test "$FDEV_NAME" = v80
+                test "$FPGA_VENDOR" = xilinx
                 test "$FPGA_BDF" = "0000:81:00.0"
                 test "$FPGA_PART_HINT" = "xcv80"
                 test "$TARGET_PLATFORM" = "versal"
@@ -88,6 +96,17 @@
                 ${doctorContext.hostFpgaEnvShellFragment}
                 assert_hardware_facts_cleared
                 test "$FDEV_NAME" = unknown-board
+              )
+              (
+                export DOCTOR_CLUSTER_XILINX_HOST=xavier FDEV_NAME=agilex7
+                stale_hardware_facts
+                ${doctorContext.hostFpgaEnvShellFragment}
+                test "$FPGA_VENDOR" = intel
+                test "$FPGA_PART_HINT" = AGIB027
+                test "$FPGA_JTAG_TARGET" = "AGI FPGA Development Kit"
+                test -z "''${FPGA_BDF:-}" && test -z "''${TARGET_PLATFORM:-}"
+                test -z "''${COYOTE_NIX_HW_SERVER_PORT:-}"
+                test -z "''${COYOTE_NIX_CS_SERVER_PORT:-}"
               )
               (
                 export DOCTOR_CLUSTER_XILINX_HOST=rose FDEV_NAME=u280

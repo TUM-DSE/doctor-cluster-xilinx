@@ -5,6 +5,11 @@ let
 
   xilinxShareRoot = "/share/xilinx";
 
+  # Intel Quartus Prime Pro installations, one directory per version.
+  quartusShareRoot = "/share/intel-fpga/tools";
+  # No valid Quartus license is installed yet. Set this when it is.
+  quartusLicenseFile = null;
+
   normalizeMac = mac: lib.toUpper (builtins.replaceStrings [ ":" ] [ "" ] mac);
 
   targetPlatforms = [
@@ -15,6 +20,7 @@ let
   boards = {
     u280 = {
       board = "u280";
+      vendor = "xilinx";
       family = "ultrascale";
       coyotePlatform = "ultrascale";
       targetPlatform = "ultrascale_plus";
@@ -25,12 +31,24 @@ let
 
     v80 = {
       board = "v80";
+      vendor = "xilinx";
       family = "versal";
       coyotePlatform = "versal";
       targetPlatform = "versal";
       partHint = "xcv80";
       xilinxVersion = "2025.1";
       simXilinxVersion = "2025.1";
+    };
+
+    # Agilex 7 I-Series development kit. Coyote does not support Intel FPGAs,
+    # so there are no Coyote platforms. Quartus 23.4 fails to start and 25.1
+    # is not installed.
+    agilex7 = {
+      board = "agilex7";
+      vendor = "intel";
+      family = "agilex7";
+      partHint = "AGIB027";
+      quartusVersion = "24.1";
     };
   };
 
@@ -69,6 +87,15 @@ let
     // lib.optionalAttrs (jtagTarget != null) { inherit jtagTarget; }
     // lib.optionalAttrs (hwServerPort != null) { inherit hwServerPort; }
     // lib.optionalAttrs (csServerPort != null) { inherit csServerPort; };
+
+  mkAgilex7 =
+    {
+      bdf ? null,
+      jtagTarget ? null,
+    }:
+    boards.agilex7
+    // lib.optionalAttrs (bdf != null) { inherit bdf; }
+    // lib.optionalAttrs (jtagTarget != null) { inherit jtagTarget; };
 
   hosts = {
     amy = {
@@ -111,6 +138,16 @@ let
           hwServerPort = "3122";
           csServerPort = "3042";
         };
+      };
+    };
+
+    xavier = {
+      defaultFpga = "agilex7";
+      # Only connected over JTAG so far; there is no PCIe endpoint. The target
+      # is the dev kit's on-board cable as jtagconfig names it, without the
+      # USB port, which changes when the cable is plugged in elsewhere.
+      fpgas.agilex7 = mkAgilex7 {
+        jtagTarget = "AGI FPGA Development Kit";
       };
     };
   };
@@ -225,7 +262,8 @@ let
             hostName: host:
             lib.mapAttrsToList (fpgaName: fpga: ''
               ${hostName}:${fpgaName})
-                export FPGA_BDF=${lib.escapeShellArg fpga.bdf}
+                export FPGA_VENDOR=${lib.escapeShellArg fpga.vendor}
+                ${lib.optionalString (fpga ? bdf) "export FPGA_BDF=${lib.escapeShellArg fpga.bdf}"}
                 ${lib.optionalString (
                   fpga ? partHint
                 ) "export FPGA_PART_HINT=${lib.escapeShellArg fpga.partHint}"}
@@ -251,7 +289,8 @@ let
       # Shells may be nested or inherited from a prior project/board devshell.
       # Clear inventory-derived hardware facts before applying this host's match;
       # keep FDEV_NAME intact because generic Coyote builds use it for target selection.
-      unset FPGA_BDF FPGA_PART_HINT TARGET_PLATFORM COYOTE_NIX_TARGET_PLATFORM COYOTE_NIX_PLATFORM
+      unset FPGA_VENDOR FPGA_BDF FPGA_PART_HINT TARGET_PLATFORM
+      unset COYOTE_NIX_TARGET_PLATFORM COYOTE_NIX_PLATFORM
       unset FPGA_JTAG_TARGET COYOTE_NIX_HW_SERVER_PORT COYOTE_NIX_CS_SERVER_PORT HW_SERVER_PORT
       doctor_cluster_xilinx_host="''${DOCTOR_CLUSTER_XILINX_HOST:-$(hostname -s 2>/dev/null || hostname 2>/dev/null || true)}"
       doctor_cluster_xilinx_fpga="''${FDEV_NAME:-}"
@@ -274,6 +313,8 @@ let
     {
       inherit
         xilinxShareRoot
+        quartusShareRoot
+        quartusLicenseFile
         targetPlatforms
         boards
         hosts
@@ -302,6 +343,8 @@ in
 {
   inherit
     xilinxShareRoot
+    quartusShareRoot
+    quartusLicenseFile
     targetPlatforms
     boards
     hosts

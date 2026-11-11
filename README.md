@@ -132,9 +132,21 @@ Currently encoded board-level Xilinx policy:
 - `v80.xilinxVersion = "2025.1"`
 - `v80.simXilinxVersion = "2025.1"`
 
+Every board has a `vendor` field (`"xilinx"` or `"intel"`), so projects can choose the matching
+fpga-nix tool set.
+
+Currently encoded Intel policy:
+
+- `agilex7.quartusVersion = "24.1"`. Quartus 23.4 fails to start on the cluster and 25.1 is
+  not installed.
+- `quartusShareRoot = "/share/intel-fpga/tools"`, with one directory per version.
+- `quartusLicenseFile = null` until a valid Quartus license is installed.
+
+Coyote does not support Intel FPGAs, so `agilex7` has no Coyote platform fields.
+
 ## Host facts
 
-`hostFpgaEnvShellFragment` is a shell fragment for dev shells. At shell-entry time it detects the short hostname and current `FDEV_NAME`, clears inherited inventory-derived hardware facts, and then exports the matching Doctor host facts such as `FPGA_BDF`, `FPGA_PART_HINT`, `TARGET_PLATFORM`, `FPGA_JTAG_TARGET`, and `COYOTE_NIX_HW_SERVER_PORT`. It deliberately preserves `FDEV_NAME` for build target selection. Set `DOCTOR_CLUSTER_XILINX_HOST` to override hostname detection.
+`hostFpgaEnvShellFragment` is a shell fragment for dev shells. At shell-entry time it detects the short hostname and current `FDEV_NAME`, clears inherited inventory-derived hardware facts, and then exports the matching Doctor host facts such as `FPGA_VENDOR`, `FPGA_BDF`, `FPGA_PART_HINT`, `TARGET_PLATFORM`, `FPGA_JTAG_TARGET`, and `COYOTE_NIX_HW_SERVER_PORT`. It deliberately preserves `FDEV_NAME` for build target selection. Set `DOCTOR_CLUSTER_XILINX_HOST` to override hostname detection.
 
 ### Generic Xilinx build and simulation environment
 
@@ -162,6 +174,11 @@ on Amy, Clara, and Rose:
 | `clara.u280` | `0000:e1:00.0` | `21770327N021` |
 | `rose.u280` | `0000:e1:00.0` | `217702174005` |
 | `rose.v80` | `0000:c1:00.0` | `XFL1EZVSAG4S` |
+| `xavier.agilex7` | none | `AGIPCIe8020401` |
+
+Xavier's Agilex 7 development kit is only connected over JTAG so far. `jtagconfig` lists its
+on-board cable as `AGI FPGA Development Kit` with an `AGIB027R29A` device, which is what
+`FPGA_JTAG_TARGET` and `FPGA_PART_HINT` match. Without a PCIe endpoint there is no `FPGA_BDF`.
 
 There was no V80 PCI/USB device on Clara. The inventory documentation in
 `doctor-cluster-config` at `3e0cfb73` still places serial `XFL1A3A2MN3U` on Clara;
