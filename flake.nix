@@ -117,7 +117,9 @@
             ''}
             touch $out
           '';
-
+        }
+        // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isx86_64 {
+          # The Doctor Xilinx shell only exists on x86_64-linux.
           xilinx-shell-lscpu = pkgs.runCommand "doctor-cluster-xilinx-shell-lscpu" { } ''
             ${doctorContext.xilinxShell}/bin/xilinx-shell -c '
               test -x /usr/bin/lscpu
