@@ -152,14 +152,30 @@ let
     };
   };
 
+  # Everything is built from doctor-cluster-config's nixpkgs. `pkgs` only gives the system.
+  resolveSystem =
+    fn:
+    {
+      pkgs ? null,
+      system ? null,
+      ...
+    }:
+    if system != null then
+      system
+    else if pkgs != null then
+      pkgs.stdenv.hostPlatform.system
+    else
+      throw "doctor-cluster-xilinx: ${fn} needs a `system` argument";
+
   mkXilinxShell =
     {
-      pkgs,
-      system ? pkgs.stdenv.hostPlatform.system,
+      pkgs ? null,
+      system ? null,
       xilinxName ? "xilinx-shell",
       runScript ? "bash",
-    }:
+    }@args:
     let
+      system = resolveSystem "mkXilinxShell" args;
       doctorPackages = doctor-cluster-config.packages.${system} or { };
       doctorPkgs = doctor-cluster-config.inputs.nixpkgs.legacyPackages.${system};
       sandboxLscpu = doctorPkgs.writeShellScriptBin "lscpu" ''
@@ -197,9 +213,7 @@ let
           }
         );
     in
-    if !(pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux) then
-      throw "doctor-cluster-xilinx: Xilinx shell is only available on x86_64-linux"
-    else if !(doctorPackages ? xilinx-env) then
+    if !(doctorPackages ? xilinx-env) then
       throw "doctor-cluster-xilinx: doctor-cluster-config does not provide packages.${system}.xilinx-env"
     else
       doctorPackages.xilinx-env.override {
@@ -209,18 +223,18 @@ let
 
   mkDriverKernels =
     {
-      pkgs,
-      system ? pkgs.stdenv.hostPlatform.system,
-    }:
-    if !(pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux) then
-      { }
-    else
-      lib.mapAttrs (_hostName: hostCfg: hostCfg.config.boot.kernelPackages.kernel) (
-        lib.filterAttrs (
-          hostName: hostCfg:
-          hostCfg.pkgs.stdenv.hostPlatform.system == system && !(lib.hasPrefix "install-iso-" hostName)
-        ) doctor-cluster-config.nixosConfigurations
-      );
+      pkgs ? null,
+      system ? null,
+    }@args:
+    let
+      system = resolveSystem "mkDriverKernels" args;
+    in
+    lib.mapAttrs (_hostName: hostCfg: hostCfg.config.boot.kernelPackages.kernel) (
+      lib.filterAttrs (
+        hostName: hostCfg:
+        hostCfg.pkgs.stdenv.hostPlatform.system == system && !(lib.hasPrefix "install-iso-" hostName)
+      ) doctor-cluster-config.nixosConfigurations
+    );
 
   licenseFileFor = hostName: "${xilinxShareRoot}/licenses/Xilinx_${hostName}.lic";
 
@@ -302,12 +316,13 @@ let
 
   mkXilinxContext =
     {
-      pkgs,
-      system ? pkgs.stdenv.hostPlatform.system,
+      pkgs ? null,
+      system ? null,
       xilinxName ? "xilinx-shell",
       runScript ? "bash",
-    }:
+    }@args:
     let
+      system = resolveSystem "mkXilinxContext" args;
       doctorPackages = doctor-cluster-config.packages.${system} or { };
     in
     {
@@ -328,14 +343,13 @@ let
 
       xilinxShell = mkXilinxShell {
         inherit
-          pkgs
           system
           xilinxName
           runScript
           ;
       };
 
-      driverKernels = mkDriverKernels { inherit pkgs system; };
+      driverKernels = mkDriverKernels { inherit system; };
       packages = doctorPackages;
       nixosConfigurations = doctor-cluster-config.nixosConfigurations;
     };

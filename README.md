@@ -44,9 +44,16 @@ Main entry point:
 
 ```nix
 doctor-cluster-xilinx.lib.mkXilinxContext {
-  inherit pkgs system;
+  inherit system;
 }
 ```
+
+The Xilinx shell and the driver kernels are always built from doctor-cluster-config's nixpkgs, so
+they match what the cluster runs. Your own `pkgs` does not change them, which is why the functions
+only take `system`. `mkXilinxContext`, `mkXilinxShell` and `mkDriverKernels` still accept `pkgs`
+so older callers keep working, but it is only used to find the system.
+
+Only `x86_64-linux` is supported.
 
 The returned context contains:
 
@@ -93,7 +100,7 @@ doctor-cluster-xilinx.lib.hostFpgaEnvShellFragment
 ```nix
 let
   doctor = doctor-cluster-xilinx.lib.mkXilinxContext {
-    inherit pkgs system;
+    inherit system;
   };
 
   tools = coyote-nix.lib.mkTools {
