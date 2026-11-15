@@ -160,19 +160,12 @@ let
       system ? null,
       ...
     }:
-    let
-      resolved =
-        if system != null then
-          system
-        else if pkgs != null then
-          pkgs.stdenv.hostPlatform.system
-        else
-          throw "doctor-cluster-xilinx: ${fn} needs a `system` argument";
-    in
-    if resolved == "x86_64-linux" then
-      resolved
+    if system != null then
+      system
+    else if pkgs != null then
+      pkgs.stdenv.hostPlatform.system
     else
-      throw "doctor-cluster-xilinx: ${fn} only supports x86_64-linux, not ${resolved}";
+      throw "doctor-cluster-xilinx: ${fn} needs a `system` argument";
 
   mkXilinxShell =
     {

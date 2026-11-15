@@ -53,8 +53,7 @@ they match what the cluster runs. Your own `pkgs` does not change them, which is
 only take `system`. `mkXilinxContext`, `mkXilinxShell` and `mkDriverKernels` still accept `pkgs`
 so older callers keep working, but it is only used to find the system.
 
-Only `x86_64-linux` is supported. On other systems the shell and driver kernels throw an error
-when used. Plain data such as `boards`, `hosts` and `xilinxShareRoot` still works everywhere.
+Only `x86_64-linux` is supported.
 
 The returned context contains:
 
