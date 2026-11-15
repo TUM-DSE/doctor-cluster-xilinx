@@ -140,15 +140,15 @@
       "locked": {
         "lastModified": 1788963511,
         "narHash": "sha256-muZa8Kj7ZsPjbE42o2rx1utkNQToz6s0oNdgTEqSzOU=",
-        "ref": "refs/heads/master",
+        "owner": "TUM-DSE",
+        "repo": "doctor-cluster-config",
         "rev": "a2b72cdd94bcee7fa8c179c019382ad94950a7f9",
-        "revCount": 5568,
-        "type": "git",
-        "url": "ssh://git@github.com/TUM-DSE/doctor-cluster-config.git"
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "ssh://git@github.com/TUM-DSE/doctor-cluster-config.git"
+        "owner": "TUM-DSE",
+        "repo": "doctor-cluster-config",
+        "type": "github"
       }
     },
     "fast-nix-gc": {
