@@ -152,14 +152,33 @@ let
     };
   };
 
+  # The Xilinx shell and the driver kernels are always built from
+  # doctor-cluster-config's nixpkgs so they match the cluster. Callers only
+  # pick the system. `pkgs` is still accepted so older callers keep working,
+  # but it is only used to find the system when `system` is not given.
+  resolveSystem =
+    fn:
+    {
+      pkgs ? null,
+      system ? null,
+      ...
+    }:
+    if system != null then
+      system
+    else if pkgs != null then
+      pkgs.stdenv.hostPlatform.system
+    else
+      throw "doctor-cluster-xilinx: ${fn} needs a `system` argument";
+
   mkXilinxShell =
     {
-      pkgs,
-      system ? pkgs.stdenv.hostPlatform.system,
+      pkgs ? null,
+      system ? null,
       xilinxName ? "xilinx-shell",
       runScript ? "bash",
-    }:
+    }@args:
     let
+      system = resolveSystem "mkXilinxShell" args;
       doctorPackages = doctor-cluster-config.packages.${system} or { };
       doctorPkgs = doctor-cluster-config.inputs.nixpkgs.legacyPackages.${system};
       sandboxLscpu = doctorPkgs.writeShellScriptBin "lscpu" ''
@@ -197,7 +216,7 @@ let
           }
         );
     in
-    if !(pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux) then
+    if system != "x86_64-linux" then
       throw "doctor-cluster-xilinx: Xilinx shell is only available on x86_64-linux"
     else if !(doctorPackages ? xilinx-env) then
       throw "doctor-cluster-xilinx: doctor-cluster-config does not provide packages.${system}.xilinx-env"
@@ -209,10 +228,13 @@ let
 
   mkDriverKernels =
     {
-      pkgs,
-      system ? pkgs.stdenv.hostPlatform.system,
-    }:
-    if !(pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux) then
+      pkgs ? null,
+      system ? null,
+    }@args:
+    let
+      system = resolveSystem "mkDriverKernels" args;
+    in
+    if system != "x86_64-linux" then
       { }
     else
       lib.mapAttrs (_hostName: hostCfg: hostCfg.config.boot.kernelPackages.kernel) (
@@ -302,12 +324,13 @@ let
 
   mkXilinxContext =
     {
-      pkgs,
-      system ? pkgs.stdenv.hostPlatform.system,
+      pkgs ? null,
+      system ? null,
       xilinxName ? "xilinx-shell",
       runScript ? "bash",
-    }:
+    }@args:
     let
+      system = resolveSystem "mkXilinxContext" args;
       doctorPackages = doctor-cluster-config.packages.${system} or { };
     in
     {
@@ -328,14 +351,13 @@ let
 
       xilinxShell = mkXilinxShell {
         inherit
-          pkgs
           system
           xilinxName
           runScript
           ;
       };
 
-      driverKernels = mkDriverKernels { inherit pkgs system; };
+      driverKernels = mkDriverKernels { inherit system; };
       packages = doctorPackages;
       nixosConfigurations = doctor-cluster-config.nixosConfigurations;
     };

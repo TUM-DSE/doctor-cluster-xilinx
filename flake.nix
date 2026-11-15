@@ -25,7 +25,7 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
-        doctorContext = doctorXilinxLib.mkXilinxContext { inherit pkgs system; };
+        doctorContext = doctorXilinxLib.mkXilinxContext { inherit system; };
       in
       {
         checks = {
