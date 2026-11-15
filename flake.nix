@@ -2,7 +2,7 @@
   description = "Doctor cluster Xilinx site facts for FPGA/Coyote projects";
 
   inputs = {
-    doctor-cluster-config.url = "git+ssh://git@github.com/TUM-DSE/doctor-cluster-config.git";
+    doctor-cluster-config.url = "github:TUM-DSE/doctor-cluster-config";
     nixpkgs.follows = "doctor-cluster-config/nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
   };
