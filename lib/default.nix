@@ -152,10 +152,7 @@ let
     };
   };
 
-  # The Xilinx shell and the driver kernels are always built from
-  # doctor-cluster-config's nixpkgs so they match the cluster. Callers only
-  # pick the system. `pkgs` is still accepted so older callers keep working,
-  # but it is only used to find the system when `system` is not given.
+  # Everything is built from doctor-cluster-config's nixpkgs. `pkgs` only gives the system.
   resolveSystem =
     fn:
     {
@@ -163,12 +160,19 @@ let
       system ? null,
       ...
     }:
-    if system != null then
-      system
-    else if pkgs != null then
-      pkgs.stdenv.hostPlatform.system
+    let
+      resolved =
+        if system != null then
+          system
+        else if pkgs != null then
+          pkgs.stdenv.hostPlatform.system
+        else
+          throw "doctor-cluster-xilinx: ${fn} needs a `system` argument";
+    in
+    if resolved == "x86_64-linux" then
+      resolved
     else
-      throw "doctor-cluster-xilinx: ${fn} needs a `system` argument";
+      throw "doctor-cluster-xilinx: ${fn} only supports x86_64-linux, not ${resolved}";
 
   mkXilinxShell =
     {
@@ -216,9 +220,7 @@ let
           }
         );
     in
-    if system != "x86_64-linux" then
-      throw "doctor-cluster-xilinx: Xilinx shell is only available on x86_64-linux"
-    else if !(doctorPackages ? xilinx-env) then
+    if !(doctorPackages ? xilinx-env) then
       throw "doctor-cluster-xilinx: doctor-cluster-config does not provide packages.${system}.xilinx-env"
     else
       doctorPackages.xilinx-env.override {
@@ -234,15 +236,12 @@ let
     let
       system = resolveSystem "mkDriverKernels" args;
     in
-    if system != "x86_64-linux" then
-      { }
-    else
-      lib.mapAttrs (_hostName: hostCfg: hostCfg.config.boot.kernelPackages.kernel) (
-        lib.filterAttrs (
-          hostName: hostCfg:
-          hostCfg.pkgs.stdenv.hostPlatform.system == system && !(lib.hasPrefix "install-iso-" hostName)
-        ) doctor-cluster-config.nixosConfigurations
-      );
+    lib.mapAttrs (_hostName: hostCfg: hostCfg.config.boot.kernelPackages.kernel) (
+      lib.filterAttrs (
+        hostName: hostCfg:
+        hostCfg.pkgs.stdenv.hostPlatform.system == system && !(lib.hasPrefix "install-iso-" hostName)
+      ) doctor-cluster-config.nixosConfigurations
+    );
 
   licenseFileFor = hostName: "${xilinxShareRoot}/licenses/Xilinx_${hostName}.lic";
 
