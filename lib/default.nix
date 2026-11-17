@@ -7,8 +7,19 @@ let
 
   # Intel Quartus Prime Pro installations, one directory per version.
   quartusShareRoot = "/share/intel-fpga/tools";
-  # No valid Quartus license is installed yet. Set this when it is.
-  quartusLicenseFile = null;
+  # The Intel FPGA floating license server on xavier, for interactive use
+  # (doctor-cluster-config's modules/intel-fpga-license).
+  quartusLicenseFile = "27010@xavier.dos.cit.tum.de";
+  # For Nix builds, which cannot reach the server: fpga-nix's licenseRelay
+  # through the Unix sockets the build hosts relay to it. Ports: lmgrd, then
+  # alterad.
+  quartusLicenseRelay = {
+    socketDir = "/run/intel-fpga-license";
+    ports = [
+      27010
+      27011
+    ];
+  };
 
   normalizeMac = mac: lib.toUpper (builtins.replaceStrings [ ":" ] [ "" ] mac);
 
@@ -41,8 +52,8 @@ let
     };
 
     # Agilex 7 I-Series development kit. Coyote does not support Intel FPGAs,
-    # so there are no Coyote platforms. Quartus 23.4 fails to start and 25.1
-    # is not installed.
+    # so there are no Coyote platforms. Quartus 23.4 fails to start. 25.1 and
+    # 26.1 are installed; 24.1 stays the default for ofs-nix's OFS 2024.2.
     agilex7 = {
       board = "agilex7";
       vendor = "intel";
@@ -330,6 +341,7 @@ let
         xilinxShareRoot
         quartusShareRoot
         quartusLicenseFile
+        quartusLicenseRelay
         targetPlatforms
         boards
         hosts
@@ -359,6 +371,7 @@ in
     xilinxShareRoot
     quartusShareRoot
     quartusLicenseFile
+    quartusLicenseRelay
     targetPlatforms
     boards
     hosts

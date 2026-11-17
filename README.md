@@ -144,10 +144,15 @@ fpga-nix tool set.
 
 Currently encoded Intel policy:
 
-- `agilex7.quartusVersion = "24.1"`. Quartus 23.4 fails to start on the cluster and 25.1 is
-  not installed.
+- `agilex7.quartusVersion = "24.1"`. Quartus 23.4 fails to start on the cluster. 25.1 and 26.1
+  are installed; 24.1 stays the default for ofs-nix's OFS 2024.2.
 - `quartusShareRoot = "/share/intel-fpga/tools"`, with one directory per version.
-- `quartusLicenseFile = null` until a valid Quartus license is installed.
+- `quartusLicenseFile = "27010@xavier.dos.cit.tum.de"`: the floating license server, for
+  interactive use.
+- `quartusLicenseRelay = { socketDir = "/run/intel-fpga-license"; ports = [ 27010 27011 ]; }`:
+  for fpga-nix's and ofs-nix's `licenseRelay` in Nix builds, which cannot reach the server
+  directly. The build hosts provide the sockets (doctor-cluster-config's
+  `modules/intel-fpga-license/relay.nix`).
 
 Coyote does not support Intel FPGAs, so `agilex7` has no Coyote platform fields.
 
